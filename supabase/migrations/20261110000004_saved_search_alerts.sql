@@ -67,6 +67,28 @@ $$;
 revoke all on function public.create_saved_search(text, double precision, double precision, integer, text, text, jsonb, boolean, boolean) from public, anon;
 grant execute on function public.create_saved_search(text, double precision, double precision, integer, text, text, jsonb, boolean, boolean) to authenticated;
 
+-- The caller's saved searches with plain lat/lng (for the "My alerts" page).
+create or replace function public.list_saved_searches()
+returns table (
+  id uuid, query text, location_label text, lat double precision, lng double precision,
+  radius_m integer, unit text, filters jsonb, notify_push boolean, notify_email boolean,
+  is_active boolean, created_at timestamptz
+)
+language sql
+stable
+security invoker
+set search_path = public, extensions
+as $$
+  select s.id, s.query, s.location_label, st_y(s.location::geometry), st_x(s.location::geometry),
+         s.radius_m, s.unit, s.filters, s.notify_push, s.notify_email, s.is_active, s.created_at
+    from public.saved_searches s
+   where s.user_id = auth.uid()
+   order by s.created_at desc
+$$;
+
+revoke all on function public.list_saved_searches() from public, anon;
+grant execute on function public.list_saved_searches() to authenticated;
+
 -- Web-push subscriptions (one per browser/device).
 create table public.push_subscriptions (
   id          uuid primary key default gen_random_uuid(),

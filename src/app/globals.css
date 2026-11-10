@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  @apply bg-stone-50 text-stone-900 antialiased;
+}
+
+/* Leaflet's divIcon wrapper adds a white box by default; our pins style themselves. */
+.leaflet-div-icon {
+  background: transparent;
+  border: 0;
+}

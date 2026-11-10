@@ -279,8 +279,11 @@ begin
   perform create_saved_search('biryani', 40.7549, -73.9840, 8047, 'mi', 'Midtown, New York');
   perform create_saved_search('biryani', 40.7549, -73.9840, 8047, 'mi', 'Midtown (vegan only)', '{"diet":["vegan"]}');
   assert (select count(*) from saved_searches) = 2;
+  assert (select count(*) from list_saved_searches() where abs(lat - 40.7549) < 1e-6 and abs(lng + 73.9840) < 1e-6) = 2,
+    'list_saved_searches returns plain coordinates';
   perform set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-00000000b002', false);
   assert (select count(*) from saved_searches) = 0, 'saved searches leak between users';
+  assert (select count(*) from list_saved_searches()) = 0, 'list_saved_searches leaks between users';
 end $$;
 reset role;
 do $$
